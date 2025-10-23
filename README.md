@@ -39,7 +39,7 @@ project_root/
 ├── manage.py
 ├── Dockerfile
 ├── docker-compose.yml
-├── .env                # Variáveis de ambiente (não versionar)
+├── .env                # Variáveis de ambiente
 ├── logs/               # Logs da aplicação
 └── README.md
 
