@@ -61,6 +61,7 @@ jobs:
 
       - name: Rodar testes
         run: |
+          mkdir -p logs
           poetry run python manage.py test --verbosity=2
 
       - name: Build do container
