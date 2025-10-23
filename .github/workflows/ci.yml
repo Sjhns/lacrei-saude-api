@@ -1,0 +1,68 @@
+name: CI - Lint, Testes e Build
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  build:
+    name: Executar Lint, Testes e Build
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_DB: lacrei_db
+          POSTGRES_USER: lacrei_user
+          POSTGRES_PASSWORD: senha_segura
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd="pg_isready -U lacrei_user -d lacrei_db"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=5
+
+    env:
+      POSTGRES_DB: lacrei_db
+      POSTGRES_USER: lacrei_user
+      POSTGRES_PASSWORD: senha_segura
+      POSTGRES_HOST: localhost
+      POSTGRES_PORT: 5432
+      DJANGO_SETTINGS_MODULE: core.settings
+      SECRET_KEY: secret_key_ci
+      DEBUG: False
+      ALLOWED_HOSTS: localhost,127.0.0.1
+      SENTRY_DSN: ""
+      PYTHONUNBUFFERED: 1
+
+    steps:
+      - name: Checkout do repositório
+        uses: actions/checkout@v4
+
+      - name: Configurar Python 3.10
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.10"
+
+      - name: Instalar Poetry
+        run: pip install poetry==1.7.1
+
+      - name:  Instalar dependências
+        run: |
+          poetry install --no-root
+
+      - name: Lint (flake8)
+        run: |
+          poetry run flake8 .
+
+      - name: Rodar testes
+        run: |
+          poetry run python manage.py test --verbosity=2
+
+      - name: Build do container
+        run: |
+          docker build -t lacrei-api .

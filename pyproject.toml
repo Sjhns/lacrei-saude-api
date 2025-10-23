@@ -1,0 +1,33 @@
+[tool.poetry]
+name = "lacrei-api"
+version = "0.1.0"
+description = ""
+authors = ["Johnson <108435026+Sjhns@users.noreply.github.com>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.10"
+django = "^5.2.7"
+djangorestframework = "^3.16.1"
+djangorestframework-simplejwt = "^5.5.1"
+django-cors-headers = "^4.9.0"
+psycopg2-binary = "^2.9.11"
+gunicorn = "^23.0.0"
+python-decouple = "^3.8"
+drf-api-logger = "^1.1.21"
+sentry-sdk = {extras = ["django"], version = "^2.42.1"}
+python-dotenv = "^1.1.1"
+drf-spectacular = "^0.28.0"
+drf-spectacular-sidecar = "^2025.10.1"
+
+
+[tool.poetry.group.dev.dependencies]
+pytest = "^8.4.2"
+pytest-django = "^4.11.1"
+black = "^25.9.0"
+flake8 = "^7.3.0"
+drf-yasg = "^1.21.11"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"

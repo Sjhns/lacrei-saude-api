@@ -1,0 +1,61 @@
+
+@baseUrl = http://localhost:8000
+@access_token = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzYxMjI3NzU0LCJpYXQiOjE3NjEyMjQxNTQsImp0aSI6ImRhNzU5ZmJmZWZiNjRmNjZhM2U3ZmJlYWE1YTk2MWVjIiwidXNlcl9pZCI6IjIifQ.-SiStxXJmJXJGnldVe3qw5hZn-TCqrQIa2rVCvKSmTk
+
+### POST
+POST {{baseUrl}}/api/token/
+Content-Type: application/json
+
+{
+    "username": "johnson",
+    "password": "python"
+}
+
+
+
+### GET - Obter consultas
+GET {{baseUrl}}/api/consultations/
+Content-Type: application/json
+Authorization: Bearer {{access_token}}
+
+### POST - Criar consulta
+POST {{baseUrl}}/api/consultations/
+Content-Type: application/json
+Authorization: Bearer {{access_token}}
+
+{
+    "patient": 1,
+    "professional": 1,
+    "datetime": "2025-11-01T10:00:00Z",
+    "notes": "Consulta inicial para avaliação."
+}
+
+### POST - Criar profissional
+POST {{baseUrl}}/api/professionals/
+Content-Type: application/json
+Authorization: Bearer {{access_token}}
+
+{
+    "name_social": "Dr. Ana Silva",
+    "profession": "Psicóloga",
+    "address": "Rua das Flores, 123, São Paulo, SP",
+    "contact": "(11) 91234-5678"
+}
+
+### GET - Listar profissionais
+GET {{baseUrl}}/api/professionals/
+Content-Type: application/json
+Authorization: Bearer {{access_token}}
+
+
+@professional_id = 2
+
+### GET - Detalhar profissional
+GET {{baseUrl}}/api/professionals/{{professional_id}}/
+Content-Type: application/json
+Authorization: Bearer {{access_token}}
+
+### GET - Busca de consultas pelo ID do profissional
+GET {{baseUrl}}/api/consultations/professional/{{professional_id}}/
+Content-Type: application/json
+Authorization: Bearer {{access_token}}
