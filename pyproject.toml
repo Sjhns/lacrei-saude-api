@@ -19,6 +19,7 @@ sentry-sdk = {extras = ["django"], version = "^2.42.1"}
 python-dotenv = "^1.1.1"
 drf-spectacular = "^0.28.0"
 drf-spectacular-sidecar = "^2025.10.1"
+pytest-cov = "^7.0.0"
 
 
 [tool.poetry.group.dev.dependencies]

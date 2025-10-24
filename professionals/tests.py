@@ -43,6 +43,42 @@ class ProfessionalCRUDTest(APITestCase):
         self.assertEqual(r.status_code, status.HTTP_204_NO_CONTENT)
         self.assertFalse(Professional.objects.filter(id=self.obj.id).exists())
 
+    def test_invalid_token(self):
+        """Verifica se a API retorna 401 com token inválido"""
+        self.client.credentials(HTTP_AUTHORIZATION="Bearer invalid_token")
+        r = self.client.get(self.list_url)
+        self.assertEqual(r.status_code, status.HTTP_401_UNAUTHORIZED)
+
+    def test_malformed_token(self):
+        """Verifica se a API retorna 401 com token malformado"""
+        self.client.credentials(HTTP_AUTHORIZATION="InvalidFormat")
+        r = self.client.get(self.list_url)
+        self.assertEqual(r.status_code, status.HTTP_401_UNAUTHORIZED)
+
+    def test_create_with_invalid_data(self):
+        """Testa criação com dados inválidos"""
+        payload = {"name_social": "", "profession": ""}  # campos vazios
+        r = self.client.post(self.list_url, payload, format="json")
+        self.assertEqual(r.status_code, status.HTTP_400_BAD_REQUEST)
+
+    def test_update_nonexistent_professional(self):
+        """Testa atualização de profissional inexistente"""
+        url = reverse("professional-detail", args=[99999])
+        r = self.client.patch(url, {"profession": "Enfermeiro"}, format="json")
+        self.assertEqual(r.status_code, status.HTTP_404_NOT_FOUND)
+
+    def test_delete_nonexistent_professional(self):
+        """Testa exclusão de profissional inexistente"""
+        url = reverse("professional-detail", args=[99999])
+        r = self.client.delete(url)
+        self.assertEqual(r.status_code, status.HTTP_404_NOT_FOUND)
+
+    def test_create_with_missing_fields(self):
+        """Testa criação sem campos obrigatórios"""
+        payload = {"name_social": "Jo"}  # sem profession
+        r = self.client.post(self.list_url, payload, format="json")
+        self.assertEqual(r.status_code, status.HTTP_400_BAD_REQUEST)
+
     def test_unauthorized_access(self):
         """Verifica se a API retorna 401 sem autenticação"""
         self.client.credentials()  # remove o token

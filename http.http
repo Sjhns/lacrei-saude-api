@@ -1,6 +1,6 @@
 
 @baseUrl = http://localhost:8000
-@access_token = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzYxMjI3NzU0LCJpYXQiOjE3NjEyMjQxNTQsImp0aSI6ImRhNzU5ZmJmZWZiNjRmNjZhM2U3ZmJlYWE1YTk2MWVjIiwidXNlcl9pZCI6IjIifQ.-SiStxXJmJXJGnldVe3qw5hZn-TCqrQIa2rVCvKSmTk
+@access_token = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzYxMzQxNDA4LCJpYXQiOjE3NjEzMzc4MDgsImp0aSI6Ijc0NTBlMTU3NDc1ZTRiYzM4MDYzYTAwNGY0ZWE5ZjFmIiwidXNlcl9pZCI6IjIifQ.d0HsjLMqcAFSD7Z78aLLpkzu2_ehQwh7uYNtbS1ni9M
 
 ### POST
 POST {{baseUrl}}/api/token/
@@ -25,7 +25,7 @@ Authorization: Bearer {{access_token}}
 
 {
     "patient": 1,
-    "professional": 1,
+    "professional": 2,
     "datetime": "2025-11-01T10:00:00Z",
     "notes": "Consulta inicial para avaliação."
 }

@@ -86,3 +86,60 @@ class ConsultationCRUDTest(APITestCase):
         self.client.credentials()  # remove o token
         r = self.client.get(self.list_url)
         self.assertEqual(r.status_code, status.HTTP_401_UNAUTHORIZED)
+
+    def test_expired_token_access(self):
+        # Create an expired token by manipulating the timestamp
+        refresh = RefreshToken.for_user(self.user)
+        refresh.set_exp(lifetime=timedelta(seconds=-1))  # Already expired
+        expired_token = str(refresh.access_token)
+        
+        self.client.credentials(HTTP_AUTHORIZATION=f"Bearer {expired_token}")
+        r = self.client.get(self.list_url)
+        self.assertEqual(r.status_code, status.HTTP_401_UNAUTHORIZED)
+
+    def test_invalid_token_format(self):
+        self.client.credentials(HTTP_AUTHORIZATION="Bearer invalid_token_format")
+        r = self.client.get(self.list_url)
+        self.assertEqual(r.status_code, status.HTTP_401_UNAUTHORIZED)
+
+    def test_missing_authorization_header(self):
+        self.client.credentials(HTTP_AUTHORIZATION="")
+        r = self.client.get(self.list_url)
+        self.assertEqual(r.status_code, status.HTTP_401_UNAUTHORIZED)
+
+    def test_create_consultation_with_invalid_datetime_format(self):
+        payload = self.valid_payload.copy()
+        payload["datetime"] = "invalid-datetime-format"
+        r = self.client.post(self.list_url, payload, format="json")
+        self.assertEqual(r.status_code, status.HTTP_400_BAD_REQUEST)
+
+    def test_create_consultation_with_missing_required_fields(self):
+        payload = {"notes": "Apenas notas"}
+        r = self.client.post(self.list_url, payload, format="json")
+        self.assertEqual(r.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertIn("professional", str(r.data))
+        self.assertIn("datetime", str(r.data))
+
+    def test_update_nonexistent_consultation(self):
+        url = reverse("consultation-detail", args=[9999])
+        r = self.client.patch(url, {"notes": "Teste"}, format="json")
+        self.assertEqual(r.status_code, status.HTTP_404_NOT_FOUND)
+
+    def test_delete_nonexistent_consultation(self):
+        url = reverse("consultation-detail", args=[9999])
+        r = self.client.delete(url)
+        self.assertEqual(r.status_code, status.HTTP_404_NOT_FOUND)
+
+    def test_access_with_deleted_user_token(self):
+        # Create a token for a user that will be deleted
+        temp_user = User.objects.create_user(username="temp", password="123456")
+        refresh = RefreshToken.for_user(temp_user)
+        token = str(refresh.access_token)
+        
+        # Delete the user
+        temp_user.delete()
+        
+        # Try to access with the token
+        self.client.credentials(HTTP_AUTHORIZATION=f"Bearer {token}")
+        r = self.client.get(self.list_url)
+        self.assertEqual(r.status_code, status.HTTP_401_UNAUTHORIZED)
