@@ -5,7 +5,7 @@ from .models import Professional
 from django.contrib.auth.models import User
 from rest_framework_simplejwt.tokens import RefreshToken
 
-
+#
 class ProfessionalCRUDTest(APITestCase):
     def setUp(self):
 
