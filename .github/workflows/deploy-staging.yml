@@ -6,12 +6,12 @@ on:
       - dev
 
 env:
-  REGION: ${{ vars.AWS_REGION }}
-  ECR_REGISTRY: ${{ vars.ECR_REGISTRY }}
-  ECR_REPOSITORY: ${{ vars.ECR_REPOSITORY }}
-  S3_BUCKET: ${{ vars.S3_BUCKET }}
-  EB_APP: ${{ vars.EB_APP_NAME }}
-  EB_ENV: ${{ vars.EB_ENV_STAGING }}
+  REGION: ${{ secrets.AWS_REGION }}
+  ECR_REGISTRY: ${{ secrets.ECR_REGISTRY }}
+  ECR_REPOSITORY: ${{ secrets.ECR_REPOSITORY }}
+  S3_BUCKET: ${{ secrets.S3_BUCKET }}
+  EB_APP: ${{ secrets.EB_APP_NAME }}
+  EB_ENV: ${{ secrets.EB_ENV_STAGING }}
 
 jobs:
   build-and-deploy:
@@ -25,12 +25,12 @@ jobs:
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v2
         with:
-          aws-access-key-id: ${{ vars.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ vars.AWS_SECRET_ACCESS_KEY }}
-          aws-region: ${{ vars.AWS_REGION }}
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_REGION }}
 
       - name: Login to ECR
-        run: echo "${{ vars.AWS_SECRET_ACCESS_KEY }}" | docker login --username AWS --password-stdin ${{ secrets.ECR_REGISTRY }}
+        run: echo "${{ secrets.AWS_SECRET_ACCESS_KEY }}" | docker login --username AWS --password-stdin ${{ secrets.ECR_REGISTRY }}
 
       - name: Build, tag and push Docker image to ECR
         run: |
