@@ -1,4 +1,4 @@
-name: Deploy Staging to Elastic Beanstalk
+name: Deploy Prod to Elastic Beanstalk
 
 on:
   push:
