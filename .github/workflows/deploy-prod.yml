@@ -89,6 +89,7 @@ jobs:
             echo "Waiting for processing (attempt $i)..."
             sleep 10
           done
+          
       - name: Deploy new version
         run: |
           aws elasticbeanstalk update-environment \
@@ -102,6 +103,15 @@ jobs:
             --environment-names $EB_ENV
           echo "Environment update completed."
       
+      - name: Record previous version
+        id: prev_version
+        run: |
+          PREV_VERSION=$(aws elasticbeanstalk describe-environments \
+            --environment-names $EB_ENV \
+            --query "Environments[0].VersionLabel" \
+            --output text)
+          echo "PREV_VERSION=$PREV_VERSION" >> $GITHUB_ENV
+
       - name: Rollback if deploy fails
         if: failure()
         run: |
