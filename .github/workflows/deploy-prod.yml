@@ -67,6 +67,14 @@ jobs:
             --source-bundle S3Bucket=$S3_BUCKET,S3Key=deploy-${GITHUB_RUN_ID}.zip \
             --region $REGION
       
+      - name: Debug application versions
+        run: |
+          echo "🔎 Verificando versões existentes..."
+          aws elasticbeanstalk describe-application-versions \
+            --application-name $EB_APP \
+            --query "ApplicationVersions[].VersionLabel" \
+            --output text
+
       - name: Wait for version to be processed
         run: |
           for i in {1..10}; do
