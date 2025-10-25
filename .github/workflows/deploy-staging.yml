@@ -29,14 +29,14 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ secrets.AWS_REGION }}
 
-      - name: Login to ECR
-        run: echo "${{ secrets.AWS_SECRET_ACCESS_KEY }}" | docker login --username AWS --password-stdin ${{ secrets.ECR_REGISTRY }}
+    #   - name: Login to ECR
+    #     run: echo "${{ secrets.AWS_SECRET_ACCESS_KEY }}" | docker login --username AWS --password-stdin ${{ secrets.ECR_REGISTRY }}
 
       - name: Build, tag and push Docker image to ECR
         run: |
           docker build -t $ECR_REPOSITORY:$GITHUB_SHA .
           docker tag $ECR_REPOSITORY:$GITHUB_SHA $ECR_REGISTRY/$ECR_REPOSITORY:$GITHUB_SHA
-          docker push $ECR_REGISTRY/$ECR_REPOSITORY:$GITHUB_SHA
+        #   docker push $ECR_REGISTRY/$ECR_REPOSITORY:$GITHUB_SHA
 
       - name: Create Dockerrun with new image
         run: |
