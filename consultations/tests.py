@@ -92,7 +92,7 @@ class ConsultationCRUDTest(APITestCase):
         refresh = RefreshToken.for_user(self.user)
         refresh.set_exp(lifetime=timedelta(seconds=-1))  # Already expired
         expired_token = str(refresh.access_token)
-        
+
         self.client.credentials(HTTP_AUTHORIZATION=f"Bearer {expired_token}")
         r = self.client.get(self.list_url)
         self.assertEqual(r.status_code, status.HTTP_401_UNAUTHORIZED)
@@ -135,10 +135,10 @@ class ConsultationCRUDTest(APITestCase):
         temp_user = User.objects.create_user(username="temp", password="123456")
         refresh = RefreshToken.for_user(temp_user)
         token = str(refresh.access_token)
-        
+
         # Delete the user
         temp_user.delete()
-        
+
         # Try to access with the token
         self.client.credentials(HTTP_AUTHORIZATION=f"Bearer {token}")
         r = self.client.get(self.list_url)
