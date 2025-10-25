@@ -64,8 +64,25 @@ jobs:
           aws elasticbeanstalk create-application-version \
             --application-name $EB_APP \
             --version-label v-${GITHUB_RUN_ID} \
-            --source-bundle S3Bucket=$S3_BUCKET,S3Key=deploy-${GITHUB_RUN_ID}.zip
-
+            --source-bundle S3Bucket=$S3_BUCKET,S3Key=deploy-${GITHUB_RUN_ID}.zip \
+            --region $REGION
+      
+      - name: Wait for version to be processed
+        run: |
+          for i in {1..10}; do
+            STATUS=$(aws elasticbeanstalk describe-application-versions \
+              --application-name $EB_APP \
+              --version-label v-${GITHUB_RUN_ID} \
+              --query "ApplicationVersions[0].Status" \
+              --output text)
+            echo "Current status: $STATUS"
+            if [ "$STATUS" = "PROCESSED" ]; then
+              echo "Version is ready!"
+              break
+            fi
+            echo "Waiting for processing (attempt $i)..."
+            sleep 10
+          done
       - name: Update environment
         run: |
           aws elasticbeanstalk update-environment \
