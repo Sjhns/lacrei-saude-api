@@ -28,9 +28,8 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ secrets.AWS_REGION }}
 
-    #   - name: Login to ECR
-    #     run: echo "${{ secrets.AWS_SECRET_ACCESS_KEY }}" | docker login --username AWS --password-stdin ${{ secrets.ECR_REGISTRY }}
-
+      #   - name: Login to ECR
+      #     run: echo "${{ secrets.AWS_SECRET_ACCESS_KEY }}" | docker login --username AWS --password-stdin ${{ secrets.ECR_REGISTRY }}
       - name: Build, tag and push Docker image to ECR
         run: |
           docker build -t $ECR_REPOSITORY:$GITHUB_SHA .
@@ -66,10 +65,9 @@ jobs:
             --version-label v-${GITHUB_RUN_ID} \
             --source-bundle S3Bucket=$S3_BUCKET,S3Key=deploy-${GITHUB_RUN_ID}.zip \
             --region $REGION
-      
+
       - name: Debug application versions
         run: |
-          echo "🔎 Verificando versões existentes..."
           aws elasticbeanstalk describe-application-versions \
             --application-name $EB_APP \
             --query "ApplicationVersions[].VersionLabel" \
@@ -91,13 +89,39 @@ jobs:
             echo "Waiting for processing (attempt $i)..."
             sleep 10
           done
-      - name: Update environment
+      - name: Deploy new version
         run: |
           aws elasticbeanstalk update-environment \
             --environment-name $EB_ENV \
             --version-label v-${GITHUB_RUN_ID}
 
-      - name: Wait for environment to be healthy
+      - name: Wait for environment update
         run: |
-          # This polls for environment status until it becomes 'Ready' or times out
-          aws elasticbeanstalk wait environment-updated --environment-names $EB_ENV
+          echo "Awaiting environment update to complete..."
+          aws elasticbeanstalk wait environment-updated \
+            --environment-names $EB_ENV
+          echo "Environment update completed."
+      
+      - name: Rollback if deploy fails
+        if: failure()
+        run: |
+          echo "Deploy failed, initiating rollback..."
+          aws elasticbeanstalk update-environment \
+            --environment-name $EB_ENV \
+            --version-label $PREV_VERSION
+          echo "Rollback completed for $PREV_VERSION!"
+
+      # - name: Verify environment health
+      #   run: |
+      #     HEALTH_STATUS=$(aws elasticbeanstalk describe-environments \
+      #       --environment-names $EB_ENV \
+      #       --query "Environments[0].Health" \
+      #       --output text)
+      #     echo "Environment health status: $HEALTH_STATUS"
+      #     if [ "$HEALTH_STATUS" != "Green" ]; then
+      #       echo "Warning: Environment health is not Green!"
+      #       exit 1
+      #     else
+      #       echo "Environment is healthy."
+      #     fi
+      
