@@ -127,30 +127,56 @@ poetry run python manage.py test
 
 Todos os endpoints exigem **autenticação JWT**, exceto o login.
 
-## Funcionalidades implementadas
+## Deploy Automático
 
-- CRUD completo para **profissionais da saúde**
-- CRUD completo para **consultas** vinculadas a profissionais
-- Busca de consultas pelo **ID do profissional**
-- **Autenticação JWT**
-- Segurança:
-  - Sanitização de inputs
-  - Prevenção de SQL Injection
-  - CORS configurado
-- Logs estruturados (DRF Logger + Sentry)
-- Containerização com Docker e PostgreSQL
-- CI com GitHub Actions (lint, testes, build)
-- Documentação automática (Swagger / Redoc)
+- Deploy via **GitHub Actions** para **Elastic Beanstalk**
 
-## Fluxo de desenvolvimento e CI/CD
+- Etapas do workflow:
 
-- **Branch principal:** `main`
-- **Pipeline:** `.github/workflows/ci.yml`
+  1. Lint e build do projeto
+  2. Execução de testes automatizados
+  3. Criação do pacote ZIP e upload para S3
+  4. Criação de nova versão no Elastic Beanstalk
+  5. Atualização do ambiente
+  6. **Rollback automático** se deploy falhar
+  7. Notificação por e-mail (AWS SES)
 
-  - Lint: flake8
-  - Testes: Django `APITestCase`
-  - Build: Docker
-- **Deploy:** pipeline pronto para AWS Elastic Beanstalk (deploy real não implementado por questões de inviabilidade)
+- Segredos necessários no GitHub Actions:
+
+  - `AWS_ACCESS_KEY_ID`
+  - `AWS_SECRET_ACCESS_KEY`
+  - `AWS_REGION`
+  - `S3_BUCKET`
+  - `EB_APP`
+  - `EB_ENV`
+  - `SES_FROM_EMAIL` e `SES_TO_EMAIL`
+
+## Checklist de Entrega
+
+| Item                                | Status |
+| ----------------------------------- | ------ |
+| CRUD completo de profissionais      | ✅      |
+| CRUD completo de consultas          | ✅      |
+| Busca por ID do profissional        | ✅      |
+| JWT e autenticação                  | ✅      |
+| Validação de dados e sanitização    | ✅      |
+| Docker + PostgreSQL configurados    | ✅      |
+| CI/CD (lint, testes, build, deploy) | ✅      |
+| Rollback automático                 | ✅      |
+| Notificação de deploy por e-mail    | ✅      |
+| Documentação Swagger / Redoc        | ✅      |
+| Testes com APITestCase              | ✅      |
+
+## Fluxo de Rollback
+
+1. O workflow captura a **versão atual do ambiente** (`PREV_VERSION`)
+2. Cria uma **nova versão** com o pacote ZIP do commit
+3. Atualiza o ambiente com a nova versão
+4. Se o deploy falhar (`Status != Ready`):
+   - Executa rollback para `PREV_VERSION`
+   - Notifica por e-mail sobre rollback
+5. Se o deploy tiver sucesso:
+   - Notifica por e-mail sobre deploy bem-sucedido
 
 ## Logs e monitoramento
 
@@ -164,13 +190,6 @@ Todos os endpoints exigem **autenticação JWT**, exceto o login.
 - DRF-Spectacular fornece documentação clara e gerenciável
 - Docker + PostgreSQL garante replicabilidade do ambiente em qualquer máquina
 - Decisões de design priorizam **segurança, manutenção e legibilidade**
-
-## Melhorias futuras
-
-- Integração com **Assas** para split de pagamento
-- Deploy multi-ambiente com **rollback automático**
-- CI/CD completo com **staging e produção**
-- Monitoramento avançado via Sentry + Prometheus
 
 ## Fluxo de Rollback para Deploy da Aplicação
 
