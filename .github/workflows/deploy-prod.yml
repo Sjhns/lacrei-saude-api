@@ -27,6 +27,15 @@ jobs:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ secrets.AWS_REGION }}
+      
+      - name: Record previous version
+        id: prev_version
+        run: |
+          PREV_VERSION=$(aws elasticbeanstalk describe-environments \
+            --environment-names $EB_ENV \
+            --query "Environments[0].VersionLabel" \
+            --output text)
+          echo "PREV_VERSION=$PREV_VERSION" >> $GITHUB_ENV
 
       #   - name: Login to ECR
       #     run: echo "${{ secrets.AWS_SECRET_ACCESS_KEY }}" | docker login --username AWS --password-stdin ${{ secrets.ECR_REGISTRY }}
@@ -102,15 +111,6 @@ jobs:
           aws elasticbeanstalk wait environment-updated \
             --environment-names $EB_ENV
           echo "Environment update completed."
-      
-      - name: Record previous version
-        id: prev_version
-        run: |
-          PREV_VERSION=$(aws elasticbeanstalk describe-environments \
-            --environment-names $EB_ENV \
-            --query "Environments[0].VersionLabel" \
-            --output text)
-          echo "PREV_VERSION=$PREV_VERSION" >> $GITHUB_ENV
 
       - name: Rollback if deploy fails
         if: failure()
