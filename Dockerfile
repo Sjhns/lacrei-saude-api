@@ -11,11 +11,6 @@ WORKDIR /app
 
 RUN pip install poetry==1.7.1
 
-# simular uma falha de deploy para testar o rollback
-Deploy falhou. Iniciando rollback para $PREV_VERSION..
-Deploy falhou. Iniciando rollback para $PREV_VERSION.. Deploy falhou. Iniciando rollback para $PREV_VERSION.. Deploy falhou. Iniciando rollback para $PREV_VERSION.. Deploy falhou. Iniciando rollback para $PREV_VERSION.. Deploy falhou. Iniciando rollback para $PREV_VERSION..
-
-
 
 COPY pyproject.toml poetry.lock ./
 RUN poetry install --no-root --no-dev
