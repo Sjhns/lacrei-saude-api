@@ -82,23 +82,22 @@ jobs:
             --query "ApplicationVersions[].VersionLabel" \
             --output text
 
-      # - name: Wait for version to be processed
-      #   run: |
-      #     for i in {1..5}; do
-      #       STATUS=$(aws elasticbeanstalk describe-application-versions \
-      #         --application-name $EB_APP \
-      #         --version-label v-${GITHUB_RUN_ID} \
-      #         --query "ApplicationVersions[0].Status" \
-      #         --output text)
-      #       echo "Current status: $STATUS"
-      #       if [ "$STATUS" = "PROCESSED" ]; then
-      #         echo "Version is ready!"
-      #         break
-      #       fi
-      #       echo "Waiting for processing (attempt $i)..."
-      #       sleep 10
-      #     done
-      # 
+      - name: Wait for version to be processed
+        run: |
+          for i in {1..5}; do
+            STATUS=$(aws elasticbeanstalk describe-application-versions \
+              --application-name $EB_APP \
+              --version-label v-${GITHUB_RUN_ID} \
+              --query "ApplicationVersions[0].Status" \
+              --output text)
+            echo "Current status: $STATUS"
+            if [ "$STATUS" = "PROCESSED" ]; then
+              echo "Version is ready!"
+              break
+            fi
+            echo "Waiting for processing (attempt $i)..."
+            sleep 10
+          done
 
       - name: Deploy new version
         run: |
