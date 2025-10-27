@@ -1,4 +1,3 @@
-from django.test import override_settings
 from rest_framework.test import APITestCase
 from django.urls import reverse
 from rest_framework import status
@@ -9,14 +8,7 @@ from datetime import timedelta
 from django.contrib.auth.models import User
 from rest_framework_simplejwt.tokens import RefreshToken
 
-# @override_settings(
-#     DATABASES={
-#         "default": {
-#             "ENGINE": "django.db.backends.sqlite3",
-#             "NAME": ":memory:",
-#         }
-#     }
-# )
+
 class ConsultationCRUDTest(APITestCase):
     def setUp(self):
 
