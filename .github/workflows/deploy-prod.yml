@@ -105,12 +105,12 @@ jobs:
             --environment-name $EB_ENV \
             --version-label v-${GITHUB_RUN_ID}
 
-      - name: Wait for environment update
-        run: |
-          echo "Awaiting environment update to complete..."
-          aws elasticbeanstalk wait environment-updated \
-            --environment-names $EB_ENV
-          echo "Environment update completed."
+      # - name: Wait for environment update
+      #   run: |
+      #     echo "Awaiting environment update to complete..."
+      #     aws elasticbeanstalk wait environment-updated \
+      #       --environment-names $EB_ENV
+      #     echo "Environment update completed."
 
       - name: Deploy to EB
         uses: einaregilsson/beanstalk-deploy@v20
