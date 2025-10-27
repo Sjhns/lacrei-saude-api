@@ -84,7 +84,7 @@ jobs:
 
       - name: Wait for version to be processed
         run: |
-          for i in {1..5}; do
+          for i in {1..15}; do
             STATUS=$(aws elasticbeanstalk describe-application-versions \
               --application-name $EB_APP \
               --version-label v-${GITHUB_RUN_ID} \
@@ -105,12 +105,12 @@ jobs:
             --environment-name $EB_ENV \
             --version-label v-${GITHUB_RUN_ID}
 
-      # - name: Wait for environment update
-      #   run: |
-      #     echo "Awaiting environment update to complete..."
-      #     aws elasticbeanstalk wait environment-updated \
-      #       --environment-names $EB_ENV
-      #     echo "Environment update completed."
+      - name: Wait for environment update
+        run: |
+          echo "Awaiting environment update to complete..."
+          aws elasticbeanstalk wait environment-updated \
+            --environment-names $EB_ENV
+          echo "Environment update completed."
 
       - name: Deploy to EB
         uses: einaregilsson/beanstalk-deploy@v20
