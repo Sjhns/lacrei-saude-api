@@ -7,8 +7,6 @@ PYTHONUNBUFFERED=1
 
 WORKDIR /app
 
-
-
 RUN pip install poetry==1.7.1
 
 
