@@ -49,7 +49,7 @@ jobs:
         run: |
           cat > Dockerrun.aws.json <<EOF
           {
-            "AWSEBDockerrunVersion": "3",
+            "AWSEBDockerrunVersion": "1",
             "containerDefinitions": [{
               "name": "lacrei-api",
               "image": "${ECR_REGISTRY}/${ECR_REPOSITORY}:${GITHUB_SHA}",
