@@ -1,15 +1,15 @@
 
 version: '3.8'
 services:
-  db:
-    image: postgres:15
-    restart: always
-    env_file:
-      - .env
-    volumes:
-      - postgres_data:/var/lib/postgresql/data
-    ports:
-      - "5432:5432"
+  # db:
+  #   image: postgres:15
+  #   restart: always
+  #   env_file:
+  #     - .env
+  #   volumes:
+  #     - postgres_data:/var/lib/postgresql/data
+  #   ports:
+  #     - "5432:5432"
   web:
     build: .
     command: poetry run python manage.py runserver 0.0.0.0:8000
@@ -19,8 +19,8 @@ services:
       - "8000:8000"
     environment:
       - .env
-    depends_on:
-      - db
+    # depends_on:
+    #   - db
 
 
 volumes:
