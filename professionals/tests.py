@@ -6,7 +6,6 @@ from django.contrib.auth.models import User
 from rest_framework_simplejwt.tokens import RefreshToken
 
 
-#
 class ProfessionalCRUDTest(APITestCase):
     def setUp(self):
 
@@ -20,14 +19,21 @@ class ProfessionalCRUDTest(APITestCase):
             name_social="Alex", profession="Psicólogo"
         )
 
+        self.valid_payload = {
+            "name_social": "Dr. Ana Silva",
+            "profession": "Psicóloga",
+            "address": "Rua das Flores, 123, São Paulo, SP",
+            "contact": "(11) 91234-5678",
+        }
+
     def test_list_professionals(self):
         r = self.client.get(self.list_url)
         self.assertEqual(r.status_code, status.HTTP_200_OK)
         self.assertGreaterEqual(len(r.data), 1)
 
     def test_create_professional(self):
-        payload = {"name_social": "Jo", "profession": "Médico"}
-        r = self.client.post(self.list_url, payload, format="json")
+
+        r = self.client.post(self.list_url, self.valid_payload, format="json")
         self.assertEqual(r.status_code, status.HTTP_201_CREATED)
         self.assertEqual(Professional.objects.count(), 2)
 
