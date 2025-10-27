@@ -43,7 +43,8 @@ jobs:
       - name: Generate deployment package
         run: |
           zip -r deploy-${{ github.run_id }}.zip . -x "*.git*" 
-
+      
+      # - name: 
       - name: Deploy to EB
         uses: einaregilsson/beanstalk-deploy@v20
         with:
