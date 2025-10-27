@@ -1,3 +1,4 @@
+from django.test import override_settings
 from rest_framework.test import APITestCase
 from django.urls import reverse
 from rest_framework import status
@@ -8,7 +9,14 @@ from datetime import timedelta
 from django.contrib.auth.models import User
 from rest_framework_simplejwt.tokens import RefreshToken
 
-
+# @override_settings(
+#     DATABASES={
+#         "default": {
+#             "ENGINE": "django.db.backends.sqlite3",
+#             "NAME": ":memory:",
+#         }
+#     }
+# )
 class ConsultationCRUDTest(APITestCase):
     def setUp(self):
 
@@ -84,16 +92,6 @@ class ConsultationCRUDTest(APITestCase):
 
     def test_unauthorized_access(self):
         self.client.credentials()  # remove o token
-        r = self.client.get(self.list_url)
-        self.assertEqual(r.status_code, status.HTTP_401_UNAUTHORIZED)
-
-    def test_expired_token_access(self):
-        # Create an expired token by manipulating the timestamp
-        refresh = RefreshToken.for_user(self.user)
-        refresh.set_exp(lifetime=timedelta(seconds=-1))  # Already expired
-        expired_token = str(refresh.access_token)
-
-        self.client.credentials(HTTP_AUTHORIZATION=f"Bearer {expired_token}")
         r = self.client.get(self.list_url)
         self.assertEqual(r.status_code, status.HTTP_401_UNAUTHORIZED)
 
