@@ -53,7 +53,7 @@ jobs:
         run: |
           cat > Dockerrun.aws.json <<EOF
           {
-            "AWSEBDockerrunVersion": "3",
+            "AWSEBDockerrunVersion": "1",
             "Ports": [
               {
                 "ContainerPort": "8000"
@@ -149,16 +149,16 @@ jobs:
           echo "Manual intervention may be required."
             fi
 
-      # - name: Verify environment health
-      #   run: |
-      #     HEALTH_STATUS=$(aws elasticbeanstalk describe-environments \
-      #       --environment-names $EB_ENV \
-      #       --query "Environments[0].Health" \
-      #       --output text)
-      #     echo "Environment health status: $HEALTH_STATUS"
-      #     if [ "$HEALTH_STATUS" != "Green" ]; then
-      #       echo "Warning: Environment health is not Green!"
-      #       exit 1
-      #     else
-      #       echo "Environment is healthy."
-      #     fi
+      - name: Verify environment health
+        run: |
+          HEALTH_STATUS=$(aws elasticbeanstalk describe-environments \
+            --environment-names $EB_ENV \
+            --query "Environments[0].Health" \
+            --output text)
+          echo "Environment health status: $HEALTH_STATUS"
+          if [ "$HEALTH_STATUS" != "Green" ]; then
+            echo "Warning: Environment health is not Green!"
+            exit 1
+          else
+            echo "Environment is healthy."
+          fi
