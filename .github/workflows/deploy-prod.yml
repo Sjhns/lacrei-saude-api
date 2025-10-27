@@ -129,10 +129,16 @@ jobs:
         if: failure()
         run: |
           echo "Deploy failed, initiating rollback..."
+          if [ "$PREV_VERSION" != "null" ] && [ "$PREV_VERSION" != "None" ] && [ -n "$PREV_VERSION" ]; then
+          echo "Rolling back to previous version: $PREV_VERSION"
           aws elasticbeanstalk update-environment \
             --environment-name $EB_ENV \
             --version-label $PREV_VERSION
           echo "Rollback completed for $PREV_VERSION!"
+            else
+          echo "This is the first deployment, no previous version to rollback to."
+          echo "Manual intervention may be required."
+            fi
 
       # - name: Verify environment health
       #   run: |
