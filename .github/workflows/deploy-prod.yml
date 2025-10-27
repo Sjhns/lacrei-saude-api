@@ -12,6 +12,8 @@ env:
   S3_BUCKET: ${{ secrets.S3_BUCKET }}
   EB_APP: ${{ secrets.EB_APP_NAME }}
   EB_ENV: ${{ secrets.EB_ENV_PROD }}
+  USERNAME_DOCKERHUB: ${{ secrets.USERNAME_DOCKERHUB }}
+  TOKEN_DOCKERHUB: ${{ secrets.TOKEN_DOCKERHUB }}
 
 jobs:
   build-and-deploy:
@@ -36,26 +38,101 @@ jobs:
             --query "Environments[0].VersionLabel" \
             --output text)
           echo "PREV_VERSION=$PREV_VERSION" >> $GITHUB_ENV
-        
-      - name: Generate version label
-        run: echo "VERSION_LABEL=v-${{ github.run_id }}" >> $GITHUB_ENV
 
-      - name: Generate deployment package
+      - name: Login to ECR
+        run: docker login -u $USERNAME_DOCKERHUB -p $TOKEN_DOCKERHUB
+
+
+      - name: Build, tag and push Docker image to ECR
         run: |
-          zip -r deploy-${{ github.run_id }}.zip . -x "*.git*" 
-      
-      # - name: 
-      - name: Deploy to EB
-        uses: einaregilsson/beanstalk-deploy@v20
-        with:
-          application_name: ${{ env.EB_APP }}
-          aws_access_key: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws_secret_key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          environment_name: ${{ env.EB_ENV }}
-          version_label: v-${{ github.run_id }}
-          region: ${{ env.REGION }}
-          deployment_package: deploy-${{ github.run_id }}.zip
-          wait_for_environment_recovery: 60
+          docker build -t $ECR_REPOSITORY:$GITHUB_SHA .
+          docker tag $ECR_REPOSITORY:$GITHUB_SHA $ECR_REGISTRY/$ECR_REPOSITORY:$GITHUB_SHA
+          docker push $ECR_REGISTRY/$ECR_REPOSITORY:$GITHUB_SHA
+
+      - name: Create Dockerrun with new image
+        run: |
+          cat > Dockerrun.aws.json <<EOF
+          {
+            "AWSEBDockerrunVersion": "3",
+            "Ports": [
+              {
+                "ContainerPort": "8000"
+              }
+            ],
+            "containerDefinitions": [{
+              "name": "lacrei-api",
+              "image": "${ECR_REGISTRY}/${ECR_REPOSITORY}:${GITHUB_SHA}",
+              "essential": true,
+              "memory": 512,
+              "portMappings": [{"containerPort": 8000, "hostPort": 8000}],
+              "command": ["bash","-lc","poetry run python manage.py migrate --noinput && poetry run gunicorn core.wsgi:application --bind 0.0.0.0:8000"]
+            }]
+          }
+          EOF
+
+      - name: Zip Dockerrun
+        run: zip deploy.zip Dockerrun.aws.json
+
+      - name: Upload deploy package to S3
+        run: aws s3 cp deploy.zip s3://$S3_BUCKET/deploy-${GITHUB_RUN_ID}.zip
+
+      - name: Create application version
+        run: |
+          aws elasticbeanstalk create-application-version \
+            --application-name $EB_APP \
+            --version-label v-${GITHUB_RUN_ID} \
+            --source-bundle S3Bucket=$S3_BUCKET,S3Key=deploy-${GITHUB_RUN_ID}.zip \
+            --region $REGION
+
+      - name: Debug application versions
+        run: |
+          aws elasticbeanstalk describe-application-versions \
+            --application-name $EB_APP \
+            --query "ApplicationVersions[].VersionLabel" \
+            --output text
+
+      - name: Wait for version to be processed
+        run: |
+          for i in {1..15}; do
+            STATUS=$(aws elasticbeanstalk describe-application-versions \
+              --application-name $EB_APP \
+              --version-label v-${GITHUB_RUN_ID} \
+              --query "ApplicationVersions[0].Status" \
+              --output text)
+            echo "Current status: $STATUS"
+            if [ "$STATUS" = "PROCESSED" ]; then
+              echo "Version is ready!"
+              break
+            fi
+            echo "Waiting for processing (attempt $i)..."
+            sleep 10
+          done
+
+      - name: Deploy new version
+        run: |
+          aws elasticbeanstalk update-environment \
+            --environment-name $EB_ENV \
+            --version-label v-${GITHUB_RUN_ID}
+
+      - name: Wait for environment update
+        run: |
+          echo "Awaiting environment update to complete..."
+          aws elasticbeanstalk wait environment-updated \
+            --environment-names $EB_ENV
+          echo "Environment update completed."
+
+    #   - name: Deploy to EB
+    #     uses: einaregilsson/beanstalk-deploy@v20
+    #     with:
+    #       application_name: ${{ env.EB_APP }}
+    #       aws_access_key: ${{ secrets.AWS_ACCESS_KEY_ID }}
+    #       aws_secret_key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+    #       environment_name: ${{ env.EB_ENV }}
+    #       version_label: v-${{ github.run_id }}
+    #       region: ${{ env.REGION }}
+    #       deployment_package: deploy-${{ github.run_id }}.zip
+    #       wait_for_environment_recovery: 60
+    #       use_existing_version_if_available: true
 
       - name: Rollback if deploy fails
         if: failure()
@@ -71,3 +148,17 @@ jobs:
           echo "This is the first deployment, no previous version to rollback to."
           echo "Manual intervention may be required."
             fi
+
+      # - name: Verify environment health
+      #   run: |
+      #     HEALTH_STATUS=$(aws elasticbeanstalk describe-environments \
+      #       --environment-names $EB_ENV \
+      #       --query "Environments[0].Health" \
+      #       --output text)
+      #     echo "Environment health status: $HEALTH_STATUS"
+      #     if [ "$HEALTH_STATUS" != "Green" ]; then
+      #       echo "Warning: Environment health is not Green!"
+      #       exit 1
+      #     else
+      #       echo "Environment is healthy."
+      #     fi
